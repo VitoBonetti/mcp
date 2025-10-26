@@ -2,19 +2,19 @@
 FROM python:3.11-slim
 
 # Set the working directory
-WORKDIR /opt/vulnai/mcp
+WORKDIR /app
 
 # Install system dependencies for WeasyPrint
 RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libcairo2 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-xlib-2.0-0 \
     libpangoft2-1.0-0 \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the requirements file and install Python dependencies
-COPY requirements.txt .
+COPY mcp/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 

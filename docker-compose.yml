@@ -24,14 +24,11 @@ services:
       context: .
       dockerfile: mcp/Dockerfile
     container_name: mcp_server
-    restart: unless-stoppednginx
+    restart: unless-stopped
     ports:
       - "127.0.0.1:8080:8080" # Nginx will proxy to this
     env_file:
       - mcp/mcp.env
-    volumes:
-      # Mount the service account key into the container
-      - ./mcp/service_account.json:/opt/vulnai/mcp/service_account.json:ro
 
 volumes:
   openwebui-data:

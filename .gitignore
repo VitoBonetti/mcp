@@ -14,7 +14,7 @@ __pycache__/
 .idea/
 .DS_Store
 
-mcp/service_account.json
+mcp.env
 
 # Ephemeral generated reports
 *.pdf
