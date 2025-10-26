@@ -1,0 +1,37 @@
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: openwebui
+    restart: unless-stopped
+    environment:
+      - WEBUI_AUTH=True
+      - ENABLE_OLLAMA_API=False
+      - ENABLE_OPENAI_API=True
+      # Point to the MCP server container (http://mcp_server:8080)
+      - OPENAI_API_BASE_URL=http://mcp_server:8080/v1
+      - OPENAI_API_KEY=dummy-key
+    ports:
+      - "127.0.0.1:3000:8080" # Nginx will proxy to this
+    volumes:
+      - openwebui-data:/app/backend/data
+    # Make sure WebUI starts after the backend is available
+    depends_on:
+      - mcp_server
+
+  mcp_server:
+    # Build the image from the Dockerfile in the current directory
+    build:
+      context: .
+      dockerfile: mcp/Dockerfile
+    container_name: mcp_server
+    restart: unless-stoppednginx
+    ports:
+      - "127.0.0.1:8080:8080" # Nginx will proxy to this
+    env_file:
+      - mcp/mcp.env
+    volumes:
+      # Mount the service account key into the container
+      - ./mcp/service_account.json:/opt/vulnai/mcp/service_account.json:ro
+
+volumes:
+  openwebui-data:

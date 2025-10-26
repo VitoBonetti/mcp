@@ -1,0 +1,53 @@
+server {
+    listen 80;
+    server_name vulnai.vitobonetti.nl;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name vulnai.vitobonetti.nl;
+
+    ssl_certificate     /etc/letsencrypt/live/vulnai.vitobonetti.nl/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/vulnai.vitobonetti.nl/privkey.pem;
+
+    add_header X-Content-Type-Options nosniff;
+    add_header X-Frame-Options SAMEORIGIN;
+    add_header X-XSS-Protection "1; mode=block";
+
+    # -------- Open WebUI (frontend) at /
+    location / {
+        proxy_pass http://127.0.0.1:3000/;   # NOTE trailing slash
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    # -------- Open WebUI backend under /api/
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+
+    # Compatibility shims for some OWUI builds
+    location = /config { proxy_pass http://127.0.0.1:3000/api/config; }
+    location /backend-api/ { proxy_pass http://127.0.0.1:3000/api/; }
+    location = /backend-api/v2/config { proxy_pass http://127.0.0.1:3000/api/config; }
+    location = /owui-health { proxy_pass http://127.0.0.1:3000/health; }
+
+    # -------- MCP server gets its own prefix
+    location /mcp/ {
+        proxy_pass http://127.0.0.1:8080/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+
+}

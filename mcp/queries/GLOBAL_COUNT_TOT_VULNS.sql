@@ -1,0 +1,4 @@
+SELECT
+    COUNT(*)
+FROM
+    `{BG_MASTER_TABLE}`

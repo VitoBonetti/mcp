@@ -1,0 +1,6 @@
+SELECT
+    COUNT(*)
+FROM
+    `{BG_MASTER_TABLE}`
+WHERE
+    LOWER(market) LIKE LOWER(@market)

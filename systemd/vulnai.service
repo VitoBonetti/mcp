@@ -1,0 +1,14 @@
+[Unit]
+Description=VulnAI Application Stack (Docker Compose)
+After=docker.service network-online.target
+Wants=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/vulnai
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

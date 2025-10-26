@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>GOST VulnAI: General Overview Report for {{ market_name }}</title>
+         <style>
+             @page {
+                 size: A4;
+                 margin: 0.2in;
+             }
+             .page-break {
+                page-break-before: always; /* or page-break-after: always; */
+            }
+            body {
+                font-family: sans-serif;
+                font-size: 12px;
+                color: #11224E;
+            }
+            h1, h2, h3 {
+                color: #11224E;
+                border-bottom: 1px solid #11224E;
+                padding-bottom: 5px;
+                page-break-after:
+                        avoid;
+            }
+            h1 {
+                text-align: center;
+                font-size: 26px;
+            }
+            h2 {
+                border-bottom: none;
+                font-size: 20px;
+            }
+            h3 {
+                font-size: 16px;
+                margin-top: 20px;
+            }
+            .meta {
+                font-size: 12px;
+                color: #11224E;
+                margin-top: 5px;
+            }
+            .meta-center {
+                font-size: 12px;
+                color: #11224E;
+                margin-top: 5px;
+                text-align: center;
+            }
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 15px;
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            th, td {
+                border: 1px solid #11224E;
+                padding: 5px;
+                text-align: center;
+            }
+            th {
+                background-color: #70B2B2;
+                font-weight: bold;
+                text-align: center;
+            }
+            .transpose-table th {
+                background-color: #11224E;
+                width: 30%;
+                color: #f2f2f2 !important;
+                font-weight: bold;
+            }
+            .row-even {
+                font-weight: bolder;
+                text-align: center;
+                background-color: #FFF1CB;
+            }
+            .row-odd {
+                font-weight: bolder;
+                text-align: center;
+                background-color: #ECEEDF;
+            }
+            .note {
+                font-size: 9px;
+                font-style: italic;
+                margin-top: 10px;
+            }
+            .warning-color {
+                color: #F87B1B;
+                font-weight: bolder;
+            }
+            .alert-color {
+                color: #BF092F;
+                font-weight: bolder;
+            }
+            .success-color {
+                color: #3A6F43;
+                font-weight: bolder;
+            }
+            .date_report {
+                font-size: 9px;
+                text-align: end;
+                font-style: italic;
+            }
+            .severity_critical {
+                background-color: #000000 !important;
+                color: #f2f2f2 !important;
+                width: 20%;
+            }
+            .severity_high {
+                background-color: #BF092F !important;
+                color: #f2f2f2 !important;
+                width: 20%;
+            }
+            .severity_medium {
+                background-color: #F87B1B !important;
+                color: #000000 !important;
+                width: 20%;
+            }
+            .severity_low {
+                background-color: #FFE100 !important;
+                color: #000000 !important;
+                width: 20%;
+            }
+            .severity_info {
+                background-color: #C2E2FA !important;
+                color: #000000 !important;
+                width: 20%;
+            }
+            .vuln-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border-radius: 10px;
+                border-color: #11224E;
+                overflow: hidden;
+            }
+
+            .vuln-tr {
+                border: 0 !important;
+            }
+
+            .vuln-header {
+                display: flex;
+                justify-content: space-between;
+                text-align: start;
+                padding: 10px;
+                background: #eef2ff;
+                border-bottom: 0 solid #d1d5db;
+            }
+
+            .vuln-title {
+                font-weight: 600;
+                font-size: 14px;
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-link {
+                text-decoration: underline;
+                color: inherit;
+            }
+
+            .vuln-link:hover,
+            .vuln-link:visited,
+            .vuln-link:active {
+                color: inherit;
+                text-decoration: underline;
+            }
+
+            .vuln-subtitle {
+                font-size: 11px;
+                color: #11224E;
+                margin-top: 4px;
+                text-align: start;
+            }
+
+            .vuln-status {
+                text-align: right;
+                color: #b45309;
+                font-weight: bold;
+                font-size: 11px;
+                font-style: italic;
+                padding: 3px;
+                border-radius: 6px;
+                height: fit-content;
+            }
+
+            .vuln-description {
+                padding: 5px;
+                color: #11224E;
+                font-size: 12px;
+                text-align: start;
+            }
+
+            .vuln-meta {
+                padding: 5px;
+                border: 0;
+                font-size: 11px;
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-comments {
+                padding: 5px;
+                font-size: 12px;
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-comments hr {
+                border: none;
+                border-top: 1px solid #e5e7eb;
+                margin: 8px 0;
+            }
+
+            .vuln-comments strong {
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-comment-meta {
+                color: #6b7280;
+                font-size: 11px;
+                margin-top: 4px;
+                text-align: start;
+                font-style: italic;
+            }
+            .critical-high {
+                color: #11224E;
+                text-align: start;
+                padding-bottom: 8px;
+            }
+            /* === helpers for micro charts === */
+            .progress {
+                position: relative;
+                width: 100%;
+                height: 10px;
+                background: #e5e7eb;
+                border-radius: 6px;
+                overflow: hidden;
+                margin-top: 6px;
+            }
+            .progress-fill {
+                position:absolute;
+                top:0;
+                left:0;
+                bottom:0;
+                background:linear-gradient(90deg,#11224E,#70B2B2);
+            }
+            .progress-target {
+                height: 100%;
+                width: 2px;
+                background: #BF092F;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+            }
+
+
+            /* mini meter 0..1 for Current Risk */
+            .meter {
+                position: relative;
+                display:inline-block;
+                width:160px;
+                height:8px;
+                background:#e5e7eb;
+                border-radius:6px;
+                vertical-align:middle;
+                margin-left:6px;
+                overflow:hidden;
+            }
+            .meter-fill {
+                position:absolute;
+                top:0;
+                left:0;
+                bottom:0;
+                background:linear-gradient(90deg,#11224E,#70B2B2);
+            }
+
+            /* severity chips */
+            .chip {
+              display: inline-block;
+              font-size: 10px;
+              padding: 2px 6px;
+              border-radius: 10px;
+              border: 1px solid #11224E;
+              margin-left: 6px;
+              font-weight: bold;
+            }
+
+            /* severity stacked bar inside cards */
+            .stack {
+              width: 100%;
+              height: 12px;
+              display: flex;
+              border-radius: 6px;
+              overflow: hidden;
+              background: #e5e7eb;
+            }
+            .stack > span {
+              height: 100%;
+            }
+            .stack .crit { background: #000000; }
+            .stack .high { background: #BF092F; }
+            .stack .med  { background: #F87B1B; }
+            .stack .low  { background: #FFE100; }
+            .stack .info { background: #C2E2FA; }
+
+            /* responsive 2x2 grid (4 per page) */
+            .card-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 12px;
+            }
+            .card {
+              border: 1px solid #11224E;
+              border-radius: 10px;
+              overflow: hidden;
+            }
+            .card-header {
+              background: #eef2ff;
+              padding: 8px;
+              font-weight: 600;
+              display: flex;
+              justify-content: space-between;
+            }
+            .card-body {
+              padding: 8px;
+              font-size: 12px;
+            }
+            .card small { color: #6b7280; }
+
+            /* tighten the plain vuln-table padding where reused */
+            .vuln-table.compact .vuln-description,
+            .vuln-table.compact .vuln-meta { padding: 4px; }
+
+            /* ensure 4 cards per page when many results */
+            .wrap-4-per-page > *:nth-child(4n) { page-break-after: always; }
+            .progress-duo-wrap {background: #e5e7eb;border-radius: 8px;padding: 4px;margin: 6px 0 4px;}
+            .progress-duo { display:flex; width:100%; height:10px; border-radius:6px; overflow:hidden; }
+            .progress-open   { background:#d90429; height:100%; } /* red */
+            .progress-closed { background:#2e7d32; height:100%; } /* green */
+
+         </style>
+    </head>
+    <body>
+        <h1>General Overview Report for {{ market_name | title }}</h1>
+        <div class="date_report">Report generated on the {{ generated_at }}</div>
+        <div class="meta">
+            This report has been generated with GOST VulnAI. The data is update to <strong>{{ data.last_update }}</strong>
+        </div>
+        <div class="meta">
+            Since the 1st January a total of <strong>{{ data.counts.total_vulnerabilities }}</strong> vulnerabilities has been discovered.
+            <span class="success-color">{{ data.counts.open_closed.Closed }}</span> has been successfully closed or parked, while <span class="alert-color">{{ data.counts.open_closed.Open }}</span> still remain unsolved.
+        </div>
+        <div class="meta">
+            Below an overview of the <strong>{{ data.counts.total_vulnerabilities }}</strong> vulnerabilities grouped by severity. Between <strong>( )</strong> the number of vulnerabilities still open.
+        </div>
+        <h3>Vulnerabilities grouped by Severity</h3>
+        <div class="meta-center">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="severity_critical">Critical</th>
+                        <th class="severity_high">High</th>
+                        <th class="severity_medium">Medium</th>
+                        <th class="severity_low">Low</th>
+                        <th class="severity_info">Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>{{ data.counts.severities.Critical }} ({{ data.counts.severities_open.Critical }})</strong></td>
+                        <td><strong>{{ data.counts.severities.High }} ({{ data.counts.severities_open.High }})</strong></td>
+                        <td><strong>{{ data.counts.severities.Medium }} ({{ data.counts.severities_open.Medium }})</strong></td>
+                        <td><strong>{{ data.counts.severities.Low }} ({{ data.counts.severities_open.Low }})</strong></td>
+                        <td><strong>{{ data.counts.severities.Info }} ({{ data.counts.severities_open.Info }})</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3>Kpi Summary</h3>
+        <div class="meta">
+            <div class="meta">This is the actual situation of the KPI related to the vulnerabilities.
+                The vulnerabilities have been grouped by 'Severity'.
+                The ones with a <strong>Critical</strong>  and <strong>High</strong> severity has been grouped in the
+                <strong>High Category</strong>, the rest in the
+                <strong>Low Category</strong>.
+            </div>
+            <div class="meta">
+                The target goal for the <strong>High KPI Category</strong> is set to <strong>{{ data.high_kpi_details.kpi_goal_percentage * 100 }}%</strong> of solved within the SLA.
+                The current situation is
+                {% if data.high_kpi_details.kpi_actual_percentage >= data.high_kpi_details.kpi_goal_percentage %}
+                    <span class="success-color">{{ '%.2f%%' % (data.high_kpi_details.kpi_actual_percentage * 100) }}</span>
+                {% else %}
+                    <span class="alert-color">{{ '%.2f%%' % (data.high_kpi_details.kpi_actual_percentage * 100) }}</span>
+                {% endif %}
+            </div>
+            <div class="meta">
+                The target goal for the <strong>Low KPI Category</strong> is set to <strong>{{ data.low_kpi_details.kpi_goal_percentage * 100 }}%</strong> of solved within the SLA.
+                The current situation is
+                {% if data.low_kpi_details.kpi_actual_percentage >= data.low_kpi_details.kpi_goal_percentage %}
+                    <span class="success-color">{{ '%.2f%%' % (data.low_kpi_details.kpi_actual_percentage * 100) }}</span>
+                {% else %}
+                    <span class="alert-color">{{ '%.2f%%' % (data.low_kpi_details.kpi_actual_percentage * 100) }}</span>
+                {% endif %}
+            </div>
+            <div class="meta">
+                Below a more details overview about the KPI targets.
+            </div>
+        </div>
+        <div class="meta-center">
+            <table class="transpose-table">
+                <thead>
+                    <tr>
+                        <th style="border-top: white; border-left: white; background: white;"></th>
+                        <th class="severity_high">HIGH</th>
+                        <th class="severity_low" style="color: black !important;">LOW</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-even">
+                        <td>Current KPI</td>
+                        <td>
+                             <span class="{{ 'success-color' if data.high_kpi_details.kpi_actual_percentage >= data.high_kpi_details.kpi_goal_percentage else 'alert-color' }}">
+                                {{ '%.2f%%' % (data.high_kpi_details.kpi_actual_percentage * 100) }}
+                            </span>
+                        </td>
+                        <td>
+                             <span class="{{ 'success-color' if data.low_kpi_details.kpi_actual_percentage >= data.low_kpi_details.kpi_goal_percentage else 'alert-color' }}">
+                                {{ '%.2f%%' % (data.low_kpi_details.kpi_actual_percentage * 100) }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="row-odd">
+                        <td>Current vs Target</td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-fill" style="{{ 'width: %.2f%%' % (data.high_kpi_details.kpi_actual_percentage * 100) }}"></div>
+                                <div class="progress-target" style="{{ 'left: %.2f%%' % (data.high_kpi_details.kpi_goal_percentage * 100) }}"></div>
+                            </div>
+                            <small>Goal: {{ (data.high_kpi_details.kpi_goal_percentage * 100) | round(2) }}%</small>
+                        </td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-fill" style="{{ 'width: %.2f%%' % (data.low_kpi_details.kpi_actual_percentage * 100) }}"></div>
+                                <div class="progress-target" style="{{ 'left: %.2f%%' % (data.low_kpi_details.kpi_goal_percentage * 100) }}"></div>
+                            </div>
+                            <small>Goal: {{ (data.low_kpi_details.kpi_goal_percentage * 100) | round(2) }}%</small>
+                        </td>
+                    </tr>
+                    <tr class="row-even">
+                        <td>Missed KPI Target</td>
+                        <td><strong>{{ '%.2f%%' % (data.high_kpi_details.overdue_closed_parked_percentage * 100) }}</strong></td>
+                        <td><strong>{{ '%.2f%%' % (data.low_kpi_details.overdue_closed_parked_percentage * 100) }}</strong></td>
+                    </tr>
+                    <tr class="row-odd">
+                        <td>Still in Play %</td>
+                        <td><strong>{{ '%.2f%%' % (data.high_kpi_details.still_in_play_percentage * 100) }}</strong></td>
+                        <td><strong>{{ '%.2f%%' % (data.low_kpi_details.still_in_play_percentage * 100) }}</strong></td>
+                    </tr>
+                    <tr class="row-even">
+                        <td>Not in Play anymore %</td>
+                        <td><strong>{{ '%.2f%%' % (data.high_kpi_details.overdue_open_percentage * 100) }}</strong></td>
+                        <td><strong>{{ '%.2f%%' % (data.low_kpi_details.overdue_open_percentage * 100) }}</strong></td>
+                    </tr>
+                    <tr class="row-odd">
+                        <td>KPI Reachable</td>
+                        <td class="{{ 'alert-color' if data.high_kpi_details.is_kpi_reachable == 'Unreachable' }}"><strong>{{ data.high_kpi_details.is_kpi_reachable }}</strong></td>
+                        <td class="{{ 'alert-color' if data.low_kpi_details.is_kpi_reachable == 'Unreachable' }}"><strong>{{ data.low_kpi_details.is_kpi_reachable }}</strong></td>
+                    </tr>
+                    <tr class="row-even">
+                        <td>Current KPI Status</td>
+                        <td class="{{ 'alert-color' if data.high_kpi_details.kpi_status == 'Not Achieved' }}"><strong>{{ data.high_kpi_details.kpi_status }}</strong></td>
+                        <td class="{{ 'alert-color' if data.low_kpi_details.kpi_status == 'Not Achieved' }}"><strong>{{ data.low_kpi_details.kpi_status }}</strong></td>
+                    </tr>
+                    <tr class="row-odd">
+                        <td>Total Vulnerabilities</td>
+                        <td><strong>{{ data.high_kpi_details.total_vulnerabilities }}</strong></td>
+                        <td><strong>{{ data.low_kpi_details.total_vulnerabilities }}</strong></td>
+                    </tr>
+                    <tr class="row-even">
+                        <td>Closed/Parked on Time</td>
+                        <td><strong>{{ data.high_kpi_details.on_time_resolved_count }}</strong></td>
+                        <td><strong>{{ data.low_kpi_details.on_time_resolved_count }}</strong></td>
+                    </tr>
+                    <tr class="row-odd">
+                        <td>Open</td>
+                        <td><strong>{{ data.high_kpi_details.still_in_play_count }}</strong></td>
+                        <td><strong>{{ data.low_kpi_details.still_in_play_count }}</strong></td>
+                    </tr>
+                    <tr class="row-even">
+                        <td>Open and Overdue</td>
+                        <td><strong>{{ data.high_kpi_details.overdue_open_count }}</strong></td>
+                        <td><strong>{{ data.low_kpi_details.overdue_open_count }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3>Current Risk</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities still in Open state.
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on your open vulnerabilities for a specific market and/or risk category. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.risk_summary.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.risk_summary.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.risk_summary.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No severity data found.</p>
+            {% endif %}
+        </div>
+
+        <div class="page-break"></div>
+        <h3>Vulnerabilities Close to being Overdue (less than 7 days)</h3>
+        {% if data.counts.vulns_close_to_overdue.Total > 0 %}
+            <div class="meta">
+                There are <strong>{{ data.counts.vulns_close_to_overdue.Total }}</strong> vulnerabilities  that will turn overdue within the next 7 days.
+                <ul s>
+                    {% if data.counts.vulns_close_to_overdue.Critical > 0 %}
+                        <li>{{ data.counts.vulns_close_to_overdue.Critical }} Critical Severity</li>
+                    {% endif %}
+                    {% if data.counts.vulns_close_to_overdue.High > 0 %}
+                        <li>{{ data.counts.vulns_close_to_overdue.High }} High Severity</li>
+                    {% endif %}
+                    {% if data.counts.vulns_close_to_overdue.Medium > 0 %}
+                        <li>{{ data.counts.vulns_close_to_overdue.Medium }} Medium Severity</li>
+                    {% endif %}
+                    {% if data.counts.vulns_close_to_overdue.Low > 0 %}
+                        <li>{{ data.counts.vulns_close_to_overdue.Low }} Low Severity</li>
+                    {% endif %}
+                    {% if data.counts.vulns_close_to_overdue.Info > 0 %}
+                        <li>{{ data.counts.vulns_close_to_overdue.Info }} Info Severity</li>
+                    {% endif %}
+                </ul>
+                Below a more details list of these vulnerabilities.
+            </div>
+        {% endif %}
+        <div class="meta">
+            {% if data.vulns_to_overdue %}
+                {% for vuln in data.vulns_to_overdue %}
+                    <table class="vuln-table" style="padding-bottom: 10px;">
+                        <tr class="vuln-tr">
+                            <td colspan="2">
+                                <div class="vuln-header">
+                                    <div>
+                                        <div class="vuln-title">
+                                            <a href="{{ vuln.vuln_url }}" class="vuln-link">{{ vuln.id }}</a> ({{ vuln.market }})
+                                        </div>
+                                        <div class="vuln-subtitle">{{ vuln.description }}</div>
+                                    </div>
+                                    <div class="vuln-status">
+                                        {{ vuln.severity }} - {{ vuln.state }} ({{ vuln.sub_state }})
+                                        <span class="chip">{{ vuln.severity }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="vuln-tr">
+                            <td colspan="2"><div class="vuln-description">{{ vuln.details_summary }}</div></td>
+                        </tr>
+                        <tr class="vuln-tr">
+                            <td colspan="2"><div class="vuln-meta">
+                                Days Open: <strong>{{ vuln.open_days }}</strong> |
+                                Remaining Time: <strong>{{ vuln.remain_time }}</strong> days
+                                </div>
+                            </td>
+                        </tr>
+                        {% if vuln.last_comment %}
+                            <tr class="vuln-tr"><td colspan="2"><div class="vuln-comments">
+                                <hr>
+                                <div><strong>Last Comment</strong></div>
+                                <div>{{ vuln.last_comment }}</div>
+                                <div class="vuln-comment-meta">{{ vuln.last_comment_at }} - {{ vuln.last_comment_by }}</div>
+                            </div></td></tr>
+                        {% endif %}
+                    </table>
+                    {% if loop.index is divisibleby 2 and not loop.last %}
+                        <div class="page-break"></div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                No Vulnerabilities Close to being Overdue.
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        <h3>Critical/High vulnerabilities still Open</h3>
+        {% if data.counts.critical_high_open > 0 %}
+            <div class="meta">
+                In the current state there are <strong>{{ data.counts.critical_high_open }}</strong> open vulnerabilities with severity <strong>Critical</strong> or <span class="alert-color">High</span>. <br>
+                Below a list of these vulnerabilities order by severity.
+            </div>
+        {% endif %}
+        <div class="meta">
+            {% if data.high_critical_open %}
+                {% for vuln in data.high_critical_open %}
+                    <table class="vuln-table compact" style="margin-bottom:8px;">
+                        <tr class="vuln-tr">
+                            <td colspan="2">
+                                <div class="vuln-header">
+                                    <span class="vuln-title">
+                                        <strong><a href="{{ vuln.vuln_url }}" target="_blank">{{ vuln.id }} - {{ vuln.market }}</a></strong>
+                                    </span>
+                                    <span class="vuln-comment-meta">
+                                        Severity: <strong>{{ vuln.severity }}</strong> |
+                                        {{ vuln.state }} {% if vuln.sub_state %} ({{ vuln.sub_state }}) {% endif %} {% if vuln.is_overdue %} |
+                                        <span class="alert-color"><strong>Overdue</strong></span> {% endif %}
+                                        <span class="chip">{{ vuln.severity }}</span>
+                                    </span>
+                                </div>
+                                <div class="vuln-subtitle">
+                                    {{ vuln.description }}
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    {% if loop.index is divisibleby 10 and not loop.last %}
+                        <div class="page-break"></div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                No Critical or High Vulnerabilities still Open.
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        {% if data.is_global %}
+            <h3>Top 6 Effected Markets</h3>
+        {% else %}
+            <h3>Top 6 Effected Asset</h3>
+        {% endif %}
+        <div class="meta">
+            This is list of the {% if data.is_global %}Top 5 Effected Markets {% else %}Top 3 Effected Asset {% endif %}.
+        </div>
+        <div class="meta">
+            {% if data.top_effected %}
+                <div class="card-grid wrap-4-per-page">
+                    {% for it in data.top_effected %}
+                        {% set total = it.total or 0 %}
+                        {% set c = it.Critical or 0 %}
+                        {% set h = it.High or 0 %}
+                        {% set m = it.Medium or 0 %}
+                        {% set l = it.Low or 0 %}
+                        {% set i = it.Info or 0 %}
+                        {% set co = it.Critical_Open or 0 %}
+                        {% set ho = it.High_Open or 0 %}
+                        {% set mo = it.Medium_Open or 0 %}
+                        {% set lo = it.Low_Open or 0 %}
+                        {% set io = it.Info_Open or 0 %}
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="vuln-title">
+                                    {% if data.is_global %}{{ it.market }}{% else %}{{ it.asset_name }}{% endif %}
+                                </div>
+                                <div><strong>{{ total }}</strong>{% if it.open > 0 %} <small>(open {{ it.open }})</small>{% endif %}</div>
+                            </div>
+                            {% set open_cnt = it.open or 0 %}
+                            {% set closed_cnt = (total - open_cnt) if total else 0 %}
+                            {% set open_w = ((open_cnt / total) * 100) if total else 0 %}
+                            {% set closed_w = ((closed_cnt / total) * 100) if total else 0 %}
+                            <div class="progress-duo-wrap">
+                                <div class="progress-duo" style="margin:6px 0 4px;">
+                                    <div class="progress-open"   style="{{ 'width: %.2f%%' % open_w }}"></div>
+                                    <div class="progress-closed" style="{{ 'width: %.2f%%' % closed_w }}"></div>
+                                </div>
+                            </div>
+                            <small>Open: {{ open_cnt }} / {{ total }}</small>
+                            <div class="card-body">
+                                <table class="transpose-table" style="margin-top:8px;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 30%;">Severity</th>
+                                            <th>Total</th>
+                                            <th>Open</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="row-odd"><td class="severity_critical">Critical</td><td><strong>{{ c }}</strong></td><td><strong>{{ co }}</strong></td></tr>
+                                        <tr class="row-even"><td class="severity_high">High</td><td><strong>{{ h }}</strong></td><td><strong>{{ ho }}</strong></td></tr>
+                                        <tr class="row-odd"><td class="severity_medium">Medium</td><td><strong>{{ m }}</strong></td><td><strong>{{ mo }}</strong></td></tr>
+                                        <tr class="row-even"><td class="severity_low">Low</td><td><strong>{{ l }}</strong></td><td><strong>{{ lo }}</strong></td></tr>
+                                        <tr class="row-odd"><td class="severity_info">Info</td><td><strong>{{ i }}</strong></td><td><strong>{{ io }}</strong></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                No Data Available.
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        <h3>Top 15 Vulnerability Types</h3>
+        <div class="meta">
+            Top 15 vulnerability types with totals, plus for each severity a bar showing <em>open / total</em>.
+        </div>
+
+        {% if data.vuln_types %}
+            <table class="transpose-table">
+                <thead>
+                    <tr>
+                        <th style="width: 22%;">Vulnerability Type</th>
+                        <th style="width: 8%;">Total</th>
+                        <th style="width:14%;" class="severity_critical">Critical</th>
+                        <th style="width:14%;" class="severity_high">High</th>
+                        <th style="width:14%;" class="severity_medium">Medium</th>
+                        <th style="width:14%;" class="severity_low">Low</th>
+                        <th style="width:14%;" class="severity_info">Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in data.vuln_types %}
+                        {% set c_tot = t.Critical or 0 %}   {% set c_open = t.Critical_Open or 0 %}
+                        {% set h_tot = t.High or 0 %}       {% set h_open = t.High_Open or 0 %}
+                        {% set m_tot = t.Medium or 0 %}     {% set m_open = t.Medium_Open or 0 %}
+                        {% set l_tot = t.Low or 0 %}        {% set l_open = t.Low_Open or 0 %}
+                        {% set i_tot = t.Info or 0 %}       {% set i_open = t.Info_Open or 0 %}
+
+                        {# widths (avoid division by zero) #}
+                        {% set c_open_w = ((c_open / c_tot) * 100) if c_tot else 0 %}
+                        {% set c_closed_w = (((c_tot - c_open) / c_tot) * 100) if c_tot else 0 %}
+
+                        {% set h_open_w = ((h_open / h_tot) * 100) if h_tot else 0 %}
+                        {% set h_closed_w = (((h_tot - h_open) / h_tot) * 100) if h_tot else 0 %}
+
+                        {% set m_open_w = ((m_open / m_tot) * 100) if m_tot else 0 %}
+                        {% set m_closed_w = (((m_tot - m_open) / m_tot) * 100) if m_tot else 0 %}
+
+                        {% set l_open_w = ((l_open / l_tot) * 100) if l_tot else 0 %}
+                        {% set l_closed_w = (((l_tot - l_open) / l_tot) * 100) if l_tot else 0 %}
+
+                        {% set i_open_w = ((i_open / i_tot) * 100) if i_tot else 0 %}
+                        {% set i_closed_w = (((i_tot - i_open) / i_tot) * 100) if i_tot else 0 %}
+
+                        <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                            <td><strong>{{ t.vuln_type }}</strong></td>
+                            <td><strong>{{ t.total_found }}</strong></td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % c_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % c_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ c_open }} / {{ c_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % h_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % h_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ h_open }} / {{ h_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % m_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % m_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ m_open }} / {{ m_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % l_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % l_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ l_open }} / {{ l_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % i_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % i_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ i_open }} / {{ i_tot }}</small>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="meta">No vulnerability type data available.</div>
+        {% endif %}
+        <div class="page-break"></div>
+        <h3>Vulnerabilities Discovery Over Time</h3>
+        <div class="meta">
+            The charts below show monthly discoveries and service engagements to visualize pace and trend.
+        </div>
+
+        <div class="meta-center">
+            {% if data.vulns_trend_img %}
+                <img src="{{ data.vulns_trend_img }}" alt="Vulnerabilities Over Time" style="width: 100%; max-width: 600px;">
+            {% else %}
+                <span class="warning-color">No trend data available</span>
+            {% endif %}
+        </div>
+        <div class="meta-center">
+            {% if data.services_trend_img  %}
+                <img src="{{ data.services_trend_img  }}" alt="Service Engagement Chart" style="width: 100%; max-width: 600px;">
+            {% else %}
+                <span class="warning-color">No service  trend data available</span>
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        <h3>Average Time to Remediate vs. SLA</h3>
+        <div class="meta">
+            The charts below compare the target Service Level Agreement (SLA) time-to-solve with the
+            actual average time, broken down by severity. The first chart shows closed vulnerabilities,
+            and the second shows the current average age of open vulnerabilities.
+        </div>
+
+        <div class="meta-center">
+            {% if data.avg_time_closed_img %}
+                <img src="{{ data.avg_time_closed_img }}" alt="Average Time to Remediate (Closed)" style="width: 100%; max-width: 600px; margin-top: 15px;">
+            {% else %}
+                <span class="warning-color">No closed remediation data available</span>
+            {% endif %}
+        </div>
+        <div class="meta-center">
+            {% if data.avg_time_open_img  %}
+                <img src="{{ data.avg_time_open_img  }}" alt="Average Age of Open Vulnerabilities" style="width: 100%; max-width: 600px; margin-top: 15px;">
+            {% else %}
+                <span class="warning-color">No open vulnerability age data available</span>
+            {% endif %}
+        </div>
+    </body>
+</html>
