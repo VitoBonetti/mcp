@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
 import io
@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from google.cloud import storage
+from google.oauth2 import service_account
 from bigquery_client import run_sql
 from bigquery_client import (
     BG_MASTER_TABLE,
@@ -37,7 +38,12 @@ GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
 
 # Set up Jinja2 environment
 jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
-gcs_client = storage.Client()
+key_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+if key_path and os.path.exists(key_path):
+    creds = service_account.Credentials.from_service_account_file(key_path)
+    gcs_client = storage.Client(credentials=creds, project=creds.project_id)
+else:
+    gcs_client = storage.Client()
 gcs_bucket = gcs_client.bucket(GCS_BUCKET_NAME) if GCS_BUCKET_NAME else None
 
 # --- SQL Query Loader ---
@@ -76,8 +82,8 @@ QUERY_FILES = {
     "MARKET_SERVICE_MONTHLY_TREND": "MARKET_SERVICE_MONTHLY_TREND.sql",
     "MARKET_VULN_CLOSE_OVERDUE": "MARKET_VULN_CLOSE_OVERDUE.sql",
     "MARKET_VULN_TYPES": "MARKET_VULN_TYPES.sql",
-    "TOP_6_ASSET": "TOP_6_ASSET,sql",
-    "TOP_6_MARKET": "TOP_6_MARKET,sql",
+    "TOP_6_ASSET": "TOP_6_ASSET.sql",
+    "TOP_6_MARKET": "TOP_6_MARKET.sql",
 }
 
 QUERIES = {}
@@ -181,71 +187,6 @@ def load_query(name: str, file_name: str) -> str:
 for name, file_name in QUERY_FILES.items():
     QUERIES[name] = load_query(name, file_name)
 
-def _create_avg_time_chart(title, data_rows, bar_labels=['SLA (Days)', 'Actual (Days)']):
-    """
-    Creates a grouped bar chart for SLA vs Average Time and returns a base64 image.
-    """
-    if not data_rows:
-        return None
-
-    severities = [row[0] for row in data_rows]
-    sla_times = [row[1] for row in data_rows]
-    avg_times = [row[2] for row in data_rows]
-
-    x = np.arange(len(severities))  # the label locations
-    width = 0.35  # the width of the bars
-
-    # Bar colors from template
-    color_sla = '#11224E'  # Dark blue
-    color_avg = '#70B2B2'  # Teal
-
-    fig, ax = plt.subplots(figsize=(8, 4))
-    rects1 = ax.bar(x - width/2, sla_times, width, label=bar_labels[0], color=color_sla)
-    rects2 = ax.bar(x + width/2, avg_times, width, label=bar_labels[1], color=color_avg)
-
-    # Add some text for labels, title and axes ticks
-    ax.set_ylabel('Days', fontsize=9)
-    ax.set_title(title, fontsize=11, pad=5)
-    ax.set_xticks(x)
-    ax.set_xticklabels(severities, fontsize=8)
-    ax.legend(loc='upper left', fontsize=8)
-
-    ax.grid(True, linestyle='--', alpha=0.6, axis='y')
-    ax.set_axisbelow(True) # Ensure grid is behind bars
-
-    # Add value labels on top of each bar
-    def add_labels(rects):
-        for rect in rects:
-            height = rect.get_height()
-            if height is not None and not np.isnan(height):
-                ax.annotate(f'{height:.1f}', # Format to 1 decimal place
-                            xy=(rect.get_x() + rect.get_width() / 2, height),
-                            xytext=(0, 3),  # 3 points vertical offset
-                            textcoords="offset points",
-                            ha='center', va='bottom', fontsize=7, fontweight='bold')
-
-    add_labels(rects1)
-    add_labels(rects2)
-
-    # Set Y-axis limit to give space for labels
-    all_values = [v for v in sla_times + avg_times if v is not None and not np.isnan(v)]
-    if all_values:
-        max_val = max(all_values)
-        ax.set_ylim(0, max_val * 1.20) # 20% padding for labels
-    else:
-        ax.set_ylim(0, 10) # Default if no data
-
-    plt.tight_layout()
-
-    # Convert to base64
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=150)
-    buf.seek(0)
-    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close()
-
-    return f"data:image/png;base64,{img_base64}"
-
 
 def _get_data(market: str):
     """
@@ -326,7 +267,7 @@ def _get_data(market: str):
 
     # --- Counts Total Vulnerabilities closed to overdue ---
     total_vulns_close_to_overdue_sql = QUERIES["GLOBAL_COUNT_VULN_CLOSE_OVERDUE"] if is_global else QUERIES["MARKET_COUNT_VULN_CLOSE_OVERDUE"]
-    futures[executor.submit(run_sql, total_vulns_close_to_overdue_sql, params=None if is_global else market_param)] = "vulns_close_to_overdu_counte"
+    futures[executor.submit(run_sql, total_vulns_close_to_overdue_sql, params=None if is_global else market_param)] = "vulns_close_to_overdue_count"
 
     # --- Counts Total Vulnerabilities Critical/High Open ---
     total_critical_high_open_sql = QUERIES["GLOBAL_COUNT_CRITICAL_HIGH_OPEN"] if is_global else QUERIES["MARKET_COUNT_CRITICAL_HIGH_OPEN"]
@@ -368,7 +309,10 @@ def _get_data(market: str):
     top_effected_result = results.get("top_effected")
     data['top_effected'] = {}
     if top_effected_result and top_effected_result['rows']:
-        data['top_effected'] = dict(zip(top_effected_result['columns'], top_effected_result['rows'][0]))
+        data['top_effected'] = [
+            dict(zip(top_effected_result['columns'], row))
+            for row in top_effected_result['rows']
+        ]
 
     # Risk Summary
     data['risk_summary'] = results.get("risk_summary", {"rows": [], "columns": []})
@@ -503,7 +447,7 @@ def _get_data(market: str):
     # Average Time to Solve - Open
     avg_time_open_result = results.get("avg_time_open")
     if avg_time_open_result and avg_time_open_result['rows']:
-        data['avg_time_closed_img'] = _create_avg_time_chart(
+        data['avg_time_open_img'] = _create_avg_time_chart(
             'Average Age of Open Vulnerabilities',
             avg_time_open_result['rows'],
             bar_labels=['SLA (Days)', 'Avg. Days Open']

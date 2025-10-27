@@ -29,6 +29,8 @@ services:
       - "127.0.0.1:8080:8080" # Nginx will proxy to this
     env_file:
       - mcp/mcp.env
+    volumes:
+      - ./mcp/service_account.json:/app/service_account.json:ro
 
 volumes:
   openwebui-data:

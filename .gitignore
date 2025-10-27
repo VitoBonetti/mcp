@@ -18,3 +18,4 @@ mcp.env
 
 # Ephemeral generated reports
 *.pdf
+/mcp/service_account.json

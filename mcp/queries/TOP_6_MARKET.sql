@@ -11,13 +11,13 @@ SELECT
   COUNTIF(severity = 'Medium' AND state IN ('New', 'Open', 'Validating')) AS Medium_Open,
   COUNTIF(severity = 'Low' AND state IN ('New', 'Open', 'Validating')) AS Low_Open,
   COUNTIF(severity = 'Info' AND state IN ('New', 'Open', 'Validating')) AS Info_Open,
-  COUNTIF(state IN ('New', 'Open', 'Validating')) AS total_open,
+  COUNTIF(state IN ('New', 'Open', 'Validating')) AS open,
 FROM
   `{BG_MASTER_TABLE}`
 GROUP BY
   market
 ORDER BY
   total DESC,
-  total_open DESC,
+  open DESC,
   Critical_Open DESC
 LIMIT 6

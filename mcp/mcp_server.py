@@ -174,7 +174,14 @@ def chat(req: ChatRequest, background_tasks: BackgroundTasks):
             )
 
             # 4. Prepend summary and keep last few messages
-            summary_message = {'role': 'user', 'parts': [f"<system_summary>{summary_response.text}</system_summary>"]}
+            summary_text = ""
+            try:
+                summary_text = summary_response.text
+            except ValueError as e:
+                print(f"Summarization response was blocked or empty: {e}")
+                summary_text = f"Error during summarization: {e}"
+
+            summary_message = {'role': 'user', 'parts': [f"<system_summary>{summary_text}</system_summary>"]}
             history.append(summary_message)
             messages_to_process = req.messages[-4:]  # Keep last 2 turns
             print(f"Summarization complete for {conversation_id}.")

@@ -1,7 +1,7 @@
 SELECT
   asset_name,
   COUNT(*) AS total,
-  COUNTIF(state IN ('New', 'Open', 'Validating')) AS total_open,
+  COUNTIF(state IN ('New', 'Open', 'Validating')) AS open,
   COUNTIF(severity = 'Critical') AS Critical,
   COUNTIF(severity = 'High') AS High,
   COUNTIF(severity = 'Medium') AS Medium,
@@ -20,6 +20,6 @@ GROUP BY
   asset_name
 ORDER BY
   total DESC,
-  total_open DESC,
+  open DESC,
   Critical_Open DESC
 LIMIT 6
