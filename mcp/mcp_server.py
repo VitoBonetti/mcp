@@ -134,6 +134,14 @@ def on_startup():
     MODEL = get_model(preloaded_schemas=schema_info_str)
     TOOL_MAP = AVAILABLE_TOOLS
 
+    # --- summary model block ---
+    global SUMMARY_MODEL
+    SUMMARY_MODEL = genai.GenerativeModel(
+        model_name="gemini-2.5-flash-lite"
+    )
+    print("Summary model initialized.")
+    # --- End summary model block ---
+
 
 @app.get("/healthz")
 def healthz():
@@ -142,11 +150,10 @@ def healthz():
 
 @app.post("/v1/chat/completions", response_model=ChatResponse)
 def chat(req: ChatRequest, background_tasks: BackgroundTasks):
-    import time
     created = int(time.time())
     conversation_id = f"conv_{uuid.uuid4()}"
 
-    if not MODEL or not TOOL_MAP:
+    if not MODEL or not TOOL_MAP or not SUMMARY_MODEL:
         raise HTTPException(status_code=500, detail="Model not initialized.")
 
     history = []
@@ -168,7 +175,7 @@ def chat(req: ChatRequest, background_tasks: BackgroundTasks):
             summarization_history.append({'role': 'user', 'parts': [summary_prompt]})
 
             # 3. Generate summary (NOT as part of the main chat)
-            summary_response = MODEL.generate_content(
+            summary_response = SUMMARY_MODEL.generate_content(
                 summarization_history,
                 generation_config=genai.types.GenerationConfig(temperature=0.0)
             )
