@@ -583,5 +583,47 @@
             {% endif %}
         </div>
         <div class="page-break"></div>
+        <h3>Vulnerability Types by Risk Score</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities found in White and Black box grouped for vulnerability types
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on vulnerability types and risk. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.app_vuln_types_risk.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.app_vuln_types_risk.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.app_vuln_types_risk.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No vulnerability type risk data found.</p>
+            {% endif %}
+        </div>
     </body>
 </html>
