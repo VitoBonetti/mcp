@@ -868,5 +868,49 @@
                 <span class="warning-color">No open vulnerability age data available</span>
             {% endif %}
         </div>
+        <div class="page-break"></div>
+        <h3>Vulnerability Status Overview</h3>
+        <div class="meta">
+            A visual breakdown of vulnerabilities by their current operational state.
+        </div>
+
+        <div class="card-grid" style="margin-top: 20px; gap: 20px;">
+            <div class="card">
+                {% if data.count_state_pie_img %}
+                    <img src="{{ data.count_state_pie_img }}" alt="Vulnerabilities by State" style="width: 100%;">
+                {% else %}
+                    <div class="card-header"><span class="vuln-title">Vulnerabilities by State</span></div>
+                    <div class="card-body"><span class="warning-color">No state data available</span></div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                {% if data.count_open_substate_pie_img %}
+                    <img src="{{ data.count_open_substate_pie_img }}" alt="Open Sub-State Breakdown" style="width: 100%;">
+                {% else %}
+                    <div class="card-header"><span class="vuln-title">Breakdown of "Open" & "New"</span></div>
+                    <div class="card-body"><span class="warning-color">No open state data available</span></div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                {% if data.count_validating_substate_pie_img %}
+                    <img src="{{ data.count_validating_substate_pie_img }}" alt="Validating Sub-State Breakdown" style="width: 100%;">
+                {% else %}
+                    <div class="card-header"><span class="vuln-title">Breakdown of "Validating"</span></div>
+                    <div class="card-body"><span class="warning-color">No validating state data available</span></div>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                {% if data.count_total_overdue_pie_img %}
+                    <img src="{{ data.count_total_overdue_pie_img }}" alt="Overdue Status" style="width: 100%;">
+                {% else %}
+                    <div class="card-header"><span class="vuln-title">Overdue Status (Open Vulns)</span></div>
+                    <div class="card-body"><span class="warning-color">No overdue data available</span></div>
+                {% endif %}
+            </div>
+
+        </div>
     </body>
 </html>

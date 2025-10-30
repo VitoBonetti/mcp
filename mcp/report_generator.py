@@ -84,6 +84,14 @@ QUERY_FILES = {
     "MARKET_VULN_TYPES": "MARKET_VULN_TYPES.sql",
     "TOP_6_ASSET": "TOP_6_ASSET.sql",
     "TOP_6_MARKET": "TOP_6_MARKET.sql",
+    "GLOBAL_VULNS_STATE_COUNT": "GLOBAL_VULNS_STATE_COUNT.sql",
+    "MARKET_VULNS_STATE_COUNT": "MARKET_VULNS_STATE_COUNT.sql",
+    "GLOBAL_OPEN_SUBSTATE_COUNT": "GLOBAL_OPEN_SUBSTATE_COUNT.sql",
+    "MARKET_OPEN_SUBSTATE_COUNT": "MARKET_OPEN_SUBSTATE_COUNT.sql",
+    "GLOBAL_VALIDATING_SUBSTATE_COUNT": "GLOBAL_VALIDATING_SUBSTATE_COUNT.sql",
+    "MARKET_VALIDATING_SUBSTATE_COUNT": "MARKET_VALIDATING_SUBSTATE_COUNT.sql",
+    "GLOBAL_OVERDUE_COUNT": "GLOBAL_OVERDUE_COUNT.sql",
+    "MARKET_OVERDUE_COUNT": "MARKET_OVERDUE_COUNT.sql",
 }
 
 QUERIES = {}
@@ -151,6 +159,70 @@ def _create_avg_time_chart(title, data_rows, bar_labels=['SLA (Days)', 'Actual (
     buf.seek(0)
     img_base64 = base64.b64encode(buf.read()).decode('utf-8')
     plt.close()
+
+    return f"data:image/png;base64,{img_base64}"
+
+
+def _create_pie_chart(title, data_rows):
+    """
+    Creates a pie chart from a list of [label, count] rows and returns a base64 image.
+    """
+    if not data_rows:
+        return None
+
+    # Handle boolean labels from 'is_overdue' query, or None/empty strings
+    def format_label(label):
+        if isinstance(label, bool):
+            return "Overdue" if label else "On Time"
+        if label is None or label == '':
+            return "N/A"
+        return str(label)
+
+    labels = [format_label(row[0]) for row in data_rows]
+    counts = [int(row[1]) for row in data_rows]
+    total = sum(counts)
+
+    # Define a color palette consistent with your report's theme
+    colors = ['#11224E', '#70B2B2', '#BF092F', '#F87B1B', '#FFF1CB', '#ECEEDF', '#C2E2FA', '#3A6F43']
+
+    fig, ax = plt.subplots(figsize=(8, 4))  # Wide figure to accommodate legend
+
+    # Create the pie chart
+    wedges, texts, autotexts = ax.pie(
+        counts,
+        autopct=lambda p: '{:.1f}%'.format(p) if p > 3 else '',  # Only show % for slices > 3%
+        startangle=90,
+        colors=colors[:len(labels)],  # Use our color palette
+        pctdistance=0.85,
+        wedgeprops={'edgecolor': 'white', 'linewidth': 1}
+    )
+
+    # Style the percentage labels
+    plt.setp(autotexts, size=8, weight="bold", color="white")
+
+    # Set title
+    ax.set_title(title, fontsize=11, pad=5)
+
+    # Create descriptive labels for the legend: "Label (Count) - %"
+    legend_labels = [f'{l} ({c}) - {c / total:.1%}' for l, c in zip(labels, counts)]
+
+    # Add legend to the right side, outside the pie
+    ax.legend(
+        wedges,
+        legend_labels,
+        title="Categories",
+        loc="center left",
+        bbox_to_anchor=(0.95, 0.5),  # Position legend outside the pie
+        fontsize=8
+    )
+
+    # Convert to base64
+    buf = io.BytesIO()
+    # Use bbox_inches='tight' to ensure the legend is included in the saved image
+    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close(fig)  # Close the figure to free up memory
 
     return f"data:image/png;base64,{img_base64}"
 
@@ -272,6 +344,22 @@ def _get_data(market: str):
     # --- Counts Total Vulnerabilities Critical/High Open ---
     total_critical_high_open_sql = QUERIES["GLOBAL_COUNT_CRITICAL_HIGH_OPEN"] if is_global else QUERIES["MARKET_COUNT_CRITICAL_HIGH_OPEN"]
     futures[executor.submit(run_sql, total_critical_high_open_sql, params=None if is_global else market_param)] = "critical_high_open_count"
+
+    # --- Counts Total Vulnerabilities state ---
+    vulns_count_state_sql = QUERIES["GLOBAL_VULNS_STATE_COUNT"] if is_global else QUERIES["MARKET_VULNS_STATE_COUNT"]
+    futures[executor.submit(run_sql, vulns_count_state_sql, params=None if is_global else market_param)] = "vulns_count_state"
+
+    # --- Counts Total open substate ---
+    vulns_count_open_substate_sql = QUERIES["GLOBAL_OPEN_SUBSTATE_COUNT"] if is_global else QUERIES["MARKET_OPEN_SUBSTATE_COUNT"]
+    futures[executor.submit(run_sql, vulns_count_open_substate_sql, params=None if is_global else market_param)] = "vulns_count_open_substate"
+
+    # --- Counts Total validating substate ---
+    vulns_count_validating_substate_sql = QUERIES["GLOBAL_VALIDATING_SUBSTATE_COUNT"] if is_global else QUERIES["MARKET_VALIDATING_SUBSTATE_COUNT"]
+    futures[executor.submit(run_sql, vulns_count_validating_substate_sql, params=None if is_global else market_param)] = "vulns_count_validating_substate"
+
+    # --- Counts Total overdue ---
+    vulns_count_overdue_sql = QUERIES["GLOBAL_OVERDUE_COUNT"] if is_global else QUERIES["MARKET_OVERDUE_COUNT"]
+    futures[executor.submit(run_sql, vulns_count_overdue_sql, params=None if is_global else market_param)] = "vulns_count_overdue"
 
     # Process results as they complete
     results = {}
@@ -451,6 +539,39 @@ def _get_data(market: str):
             'Average Age of Open Vulnerabilities',
             avg_time_open_result['rows'],
             bar_labels=['SLA (Days)', 'Avg. Days Open']
+        )
+
+    # --- Pie Charts ---
+    # Total state
+    count_total_state_result = results.get("vulns_count_state")
+    if count_total_state_result and count_total_state_result['rows']:
+        data['count_state_pie_img'] = _create_pie_chart(
+            'Vulnerabilities State',
+            count_total_state_result['rows']
+        )
+
+    # Total open substate
+    count_total_open_substate_result = results.get("vulns_count_open_substate")
+    if count_total_open_substate_result and count_total_open_substate_result['rows']:
+        data['count_open_substate_pie_img'] = _create_pie_chart(
+            'Vulnerabilities Open Substate',
+            count_total_open_substate_result['rows']
+        )
+
+    # Total validating substate
+    count_total_validating_substate_result = results.get("vulns_count_validating_substate")
+    if count_total_validating_substate_result and count_total_validating_substate_result['rows']:
+        data['count_validating_substate_pie_img'] = _create_pie_chart(
+            'Vulnerabilities Validating SubState',
+            count_total_validating_substate_result['rows']
+        )
+
+    # Total overdue count
+    count_total_overdue_result = results.get("vulns_count_overdue")
+    if count_total_overdue_result and count_total_overdue_result['rows']:
+        data['count_total_overdue_pie_img'] = _create_pie_chart(
+            'Vulnerabilities Overdue',
+            count_total_overdue_result['rows']
         )
 
     # Counts
