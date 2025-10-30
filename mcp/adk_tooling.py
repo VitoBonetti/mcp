@@ -5,6 +5,7 @@ import json
 from typing import Dict, List
 from bigquery_client import list_tables, get_table_schema, run_sql
 from report_generator import generate_report
+from applications_report_gen import application_report
 from bigquery_client import (
     BG_MASTER_TABLE,
     BG_VULNERABILITIES_TABLE,
@@ -284,12 +285,24 @@ generate_report_tool = FunctionDeclaration(
     },
 )
 
+# 5. Tool for generating a PDF report for Application
+application_report_tool = FunctionDeclaration(
+    name="application_report",
+    description="Generates a comprehensive PDF summary report for application. Use this when the user asks for a 'report', 'summary', or 'overview' for the `applications`. Runs many hardcoded queries.",
+    parameters={
+        "type": "object",
+        "properties": {},
+        "required": []
+    },
+)
+
 # --- A dictionary to map tool names to our actual Python functions ---
 AVAILABLE_TOOLS = {
     "list_tables": list_tables,
     "get_table_schema": get_table_schema,
     "run_sql": run_sql,
-    "generate_report": generate_report
+    "generate_report": generate_report,
+    "application_report": application_report
 }
 
 
@@ -314,7 +327,8 @@ def get_model(preloaded_schemas: str = "") -> genai.GenerativeModel:
             list_tables_tool,
             get_table_schema_tool,
             run_sql_tool,
-            generate_report_tool
+            generate_report_tool,
+            application_report_tool
         ]
     )
 
