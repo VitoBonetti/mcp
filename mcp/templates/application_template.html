@@ -625,5 +625,45 @@
                 <p class="warning-color">No vulnerability type risk data found.</p>
             {% endif %}
         </div>
+        <div class="page-break"></div>
+        <h2>Vulnerability types Recommendation</h2>
+        <h3>Vulnerability types</h3>
+        <div class="meta">
+            {% for item in data.recommendation %}
+                <table class="vuln-table" style="padding-bottom: 10px;">
+                    <tr class="vuln-tr">
+                        <td colspan="4">
+                            <div class="vuln-header">
+                                <div>
+                                    <div class="vuln-title">
+                                        {{ item.vuln_type }}
+                                    </div>
+                                </div>
+                                <div class="vuln-status">
+                                    Total Count {{ item.type_count }}
+                                    <span class="chip">{{ item.type_count }}</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="severity_critical">Critical</th>
+                        <th class="severity_high">High</th>
+                        <th class="severity_medium">Medium</th>
+                        <th class="severity_low">Low</th>
+                    </tr>
+                    <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                        <td><strong>{{ item.Critical }} ({{ item.Critical_Open }})</strong></td>
+                        <td><strong>{{ item.High }} ({{ item.High_Open }})</strong></td>
+                        <td><strong>{{ item.Medium }} ({{ item.Medium_Open }})</strong></td>
+                        <td><strong>{{ item.Low }} ({{ item.Low_Open }})</strong></td>
+                    </tr>
+                    <tr class="vuln-tr">
+                        <td colspan="4">Recommendations:<div class="vuln-description">{{ item.combined_recommendations }}</div></td>
+                    </tr>
+                </table>
+                <div class="page-break"></div>
+            {% endfor %}
+        </div>
     </body>
 </html>

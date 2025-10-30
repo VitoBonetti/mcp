@@ -175,12 +175,6 @@ def _get_data():
     if vuln_types_result and vuln_types_result['rows']:
         data['vuln_types'] = dict(zip(vuln_types_result['columns'], vuln_types_result['rows'][0]))
 
-    # recommendation
-    recommendation_result = results.get("recommendation")
-    data['recommendation'] = {}
-    if recommendation_result and recommendation_result['rows']:
-        data['recommendation'] = dict(zip(recommendation_result['columns'], recommendation_result['rows'][0]))
-
 
     # Risk Summary
     data['app_current_risk'] = results.get("app_current_risk", {"rows": [], "columns": []})
@@ -207,6 +201,15 @@ def _get_data():
             # Create a dictionary for each row and append it to the list
             row_dict = dict(zip(columns, row))
             data['counts']["app_service_severity_count"].append(row_dict)
+
+    # recommendation
+    recommendation_result = results.get("recommendation")
+    data['recommendation'] = []
+    if recommendation_result and recommendation_result['rows']:
+        columns = recommendation_result['columns']
+        for row in recommendation_result['rows']:
+            row_dict = dict(zip(columns, row))
+            data['recommendation'].append(row_dict)
 
     return data
 
