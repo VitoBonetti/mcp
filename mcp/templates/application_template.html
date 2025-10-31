@@ -412,6 +412,25 @@
                 </tbody>
             </table>
         </div>
+        <table style="width:100%; border:none; padding-top: 20px;">
+            <tr style="border:none;">
+                <td style="width:50%; text-align:center; border:none; vertical-align: top;">
+                    {% if data.whitebox_severity_service_pie_chart %}
+                        <img src="{{ data.whitebox_severity_service_pie_chart }}" alt="White Box Pie Chart" style="width: 100%; max-width: 450px;">
+                    {% else %}
+                        <p>No White Box data available.</p>
+                    {% endif %}
+                </td>
+                <td style="width:50%; text-align:center; border:none; vertical-align: top;">
+                    {% if data.blackbox_severity_service_pie_chart %}
+                        <img src="{{ data.blackbox_severity_service_pie_chart }}" alt="Black Box Pie Chart" style="width: 100%; max-width: 450px;">
+                    {% else %}
+                        <p>No Black Box data available.</p>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        <div class="page-break"></div>
         <h2>Risk Overview</h2>
         <h3>Current Risk</h3>
         <div class="meta">
@@ -497,7 +516,6 @@
                 <p class="warning-color">No severity data found.</p>
             {% endif %}
         </div>
-        <div class="page-break"></div>
         <h3>White Box Current Risk</h3>
         <div class="meta">
             This calculation include <strong>All</strong> vulnerabilities still in Open and Validating state found in White box.
@@ -625,6 +643,94 @@
                 <p class="warning-color">No vulnerability type risk data found.</p>
             {% endif %}
         </div>
+        <div class="page-break"></div>
+        <h3>Vulnerability Types Analysis</h3>
+        <div class="meta">
+            Vulnerability types with totals, plus for each severity a bar showing <em>open / total</em>.
+        </div>
+
+        {% if data.vuln_types %}
+            <table class="transpose-table">
+                <thead>
+                    <tr>
+                        <th style="width: 26%;">Vulnerability Type</th>
+                        <th style="width: 10%;">Total</th>
+                        <th style="width:16%;" class="severity_critical">Critical</th>
+                        <th style="width:16%;" class="severity_high">High</th>
+                        <th style="width:16%;" class="severity_medium">Medium</th>
+                        <th style="width:16%;" class="severity_low">Low</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in data.vuln_types %}
+                        {% set c_tot = t.Critical or 0 %}   {% set c_open = t.Critical_Open or 0 %}
+                        {% set h_tot = t.High or 0 %}       {% set h_open = t.High_Open or 0 %}
+                        {% set m_tot = t.Medium or 0 %}     {% set m_open = t.Medium_Open or 0 %}
+                        {% set l_tot = t.Low or 0 %}        {% set l_open = t.Low_Open or 0 %}
+
+                        {# widths (avoid division by zero) #}
+                        {% set c_open_w = ((c_open / c_tot) * 100) if c_tot else 0 %}
+                        {% set c_closed_w = (((c_tot - c_open) / c_tot) * 100) if c_tot else 0 %}
+
+                        {% set h_open_w = ((h_open / h_tot) * 100) if h_tot else 0 %}
+                        {% set h_closed_w = (((h_tot - h_open) / h_tot) * 100) if h_tot else 0 %}
+
+                        {% set m_open_w = ((m_open / m_tot) * 100) if m_tot else 0 %}
+                        {% set m_closed_w = (((m_tot - m_open) / m_tot) * 100) if m_tot else 0 %}
+
+                        {% set l_open_w = ((l_open / l_tot) * 100) if l_tot else 0 %}
+                        {% set l_closed_w = (((l_tot - l_open) / l_tot) * 100) if l_tot else 0 %}
+
+                        <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                            <td><strong>{{ t.vuln_type }}</strong></td>
+                            <td><strong>{{ t.total_found }}</strong></td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % c_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % c_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ c_open }} / {{ c_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % h_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % h_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ h_open }} / {{ h_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % m_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % m_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ m_open }} / {{ m_tot }}</small>
+                            </td>
+
+                            <td>
+                                <div class="progress-duo-wrap" style="margin:2px 0;">
+                                    <div class="progress-duo">
+                                        <div class="progress-open"   style="{{ 'width: %.2f%%' % l_open_w }}"></div>
+                                        <div class="progress-closed" style="{{ 'width: %.2f%%' % l_closed_w }}"></div>
+                                    </div>
+                                </div>
+                                <small>Open {{ l_open }} / {{ l_tot }}</small>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="meta">No vulnerability type data available.</div>
+        {% endif %}
         <div class="page-break"></div>
         <h2>Vulnerability types Recommendation</h2>
         <h3>Vulnerability types</h3>
