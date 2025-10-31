@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>GOST VulnAI: Applications Report 2025</title>
+        <style>
+             @page {
+                 size: A4;
+                 margin: 0.2in;
+             }
+             .page-break {
+                page-break-before: always; /* or page-break-after: always; */
+            }
+            body {
+                font-family: sans-serif;
+                font-size: 12px;
+                color: #11224E;
+            }
+            h1, h2, h3 {
+                color: #11224E;
+                border-bottom: 1px solid #11224E;
+                padding-bottom: 5px;
+                page-break-after:
+                        avoid;
+            }
+            h1 {
+                text-align: center;
+                font-size: 26px;
+            }
+            h2 {
+                margin-top: 20px;
+                font-size: 20px;
+            }
+            h3 {
+                font-size: 16px;
+                margin-top: 20px;
+            }
+            .meta {
+                font-size: 12px;
+                color: #11224E;
+                margin-top: 5px;
+            }
+            .meta-center {
+                font-size: 12px;
+                color: #11224E;
+                margin-top: 5px;
+                text-align: center;
+            }
+
+            table {
+                border-collapse: collapse;
+                width: 100%;
+                margin-top: 15px;
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            th, td {
+                border: 1px solid #11224E;
+                padding: 5px;
+                text-align: center;
+            }
+            th {
+                background-color: #70B2B2;
+                font-weight: bold;
+                text-align: center;
+            }
+            .transpose-table th {
+                background-color: #11224E;
+                width: 30%;
+                color: #f2f2f2 !important;
+                font-weight: bold;
+            }
+            .row-even {
+                font-weight: bolder;
+                text-align: center;
+                background-color: #FFF1CB;
+            }
+            .row-odd {
+                font-weight: bolder;
+                text-align: center;
+                background-color: #ECEEDF;
+            }
+            .note {
+                font-size: 9px;
+                font-style: italic;
+                margin-top: 10px;
+            }
+            .warning-color {
+                color: #F87B1B;
+                font-weight: bolder;
+            }
+            .alert-color {
+                color: #BF092F;
+                font-weight: bolder;
+            }
+            .success-color {
+                color: #3A6F43;
+                font-weight: bolder;
+            }
+            .date_report {
+                font-size: 9px;
+                text-align: end;
+                font-style: italic;
+            }
+            .severity_critical {
+                background-color: #000000 !important;
+                color: #f2f2f2 !important;
+                width: 20%;
+            }
+            .severity_high {
+                background-color: #BF092F !important;
+                color: #f2f2f2 !important;
+                width: 20%;
+            }
+            .severity_medium {
+                background-color: #F87B1B !important;
+                color: #000000 !important;
+                width: 20%;
+            }
+            .severity_low {
+                background-color: #FFE100 !important;
+                color: #000000 !important;
+                width: 20%;
+            }
+            .severity_info {
+                background-color: #C2E2FA !important;
+                color: #000000 !important;
+                width: 20%;
+            }
+            .vuln-table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+                border-radius: 10px;
+                border-color: #11224E;
+                overflow: hidden;
+            }
+
+            .vuln-tr {
+                border: 0 !important;
+            }
+
+            .vuln-header {
+                display: flex;
+                justify-content: space-between;
+                text-align: start;
+                padding: 10px;
+                background: #eef2ff;
+                border-bottom: 0 solid #d1d5db;
+            }
+
+            .vuln-title {
+                font-weight: 600;
+                font-size: 14px;
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-link {
+                text-decoration: underline;
+                color: inherit;
+            }
+
+            .vuln-link:hover,
+            .vuln-link:visited,
+            .vuln-link:active {
+                color: inherit;
+                text-decoration: underline;
+            }
+
+            .vuln-subtitle {
+                font-size: 11px;
+                color: #11224E;
+                margin-top: 4px;
+                text-align: start;
+            }
+
+            .vuln-status {
+                text-align: right;
+                color: #b45309;
+                font-weight: bold;
+                font-size: 11px;
+                font-style: italic;
+                padding: 3px;
+                border-radius: 6px;
+                height: fit-content;
+            }
+
+            .vuln-description {
+                padding: 5px;
+                color: #11224E;
+                font-size: 12px;
+                text-align: start;
+            }
+
+            .vuln-meta {
+                padding: 5px;
+                border: 0;
+                font-size: 11px;
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-comments {
+                padding: 5px;
+                font-size: 12px;
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-comments hr {
+                border: none;
+                border-top: 1px solid #e5e7eb;
+                margin: 8px 0;
+            }
+
+            .vuln-comments strong {
+                color: #11224E;
+                text-align: start;
+            }
+
+            .vuln-comment-meta {
+                color: #6b7280;
+                font-size: 11px;
+                margin-top: 4px;
+                text-align: start;
+                font-style: italic;
+            }
+            .critical-high {
+                color: #11224E;
+                text-align: start;
+                padding-bottom: 8px;
+            }
+            /* === helpers for micro charts === */
+            .progress {
+                position: relative;
+                width: 100%;
+                height: 10px;
+                background: #e5e7eb;
+                border-radius: 6px;
+                overflow: hidden;
+                margin-top: 6px;
+            }
+            .progress-fill {
+                position:absolute;
+                top:0;
+                left:0;
+                bottom:0;
+                background:linear-gradient(90deg,#11224E,#70B2B2);
+            }
+            .progress-target {
+                height: 100%;
+                width: 2px;
+                background: #BF092F;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+            }
+
+
+            /* mini meter 0..1 for Current Risk */
+            .meter {
+                position: relative;
+                display:inline-block;
+                width:160px;
+                height:8px;
+                background:#e5e7eb;
+                border-radius:6px;
+                vertical-align:middle;
+                margin-left:6px;
+                overflow:hidden;
+            }
+            .meter-fill {
+                position:absolute;
+                top:0;
+                left:0;
+                bottom:0;
+                background:linear-gradient(90deg,#11224E,#70B2B2);
+            }
+
+            /* severity chips */
+            .chip {
+              display: inline-block;
+              font-size: 10px;
+              padding: 2px 6px;
+              border-radius: 10px;
+              border: 1px solid #11224E;
+              margin-left: 6px;
+              font-weight: bold;
+            }
+
+            /* severity stacked bar inside cards */
+            .stack {
+              width: 100%;
+              height: 12px;
+              display: flex;
+              border-radius: 6px;
+              overflow: hidden;
+              background: #e5e7eb;
+            }
+            .stack > span {
+              height: 100%;
+            }
+            .stack .crit { background: #000000; }
+            .stack .high { background: #BF092F; }
+            .stack .med  { background: #F87B1B; }
+            .stack .low  { background: #FFE100; }
+            .stack .info { background: #C2E2FA; }
+
+            /* responsive 2x2 grid (4 per page) */
+            .card-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 12px;
+            }
+            .card {
+              border: 1px solid #11224E;
+              border-radius: 10px;
+              overflow: hidden;
+            }
+            .card-header {
+              background: #eef2ff;
+              padding: 8px;
+              font-weight: 600;
+              display: flex;
+              justify-content: space-between;
+            }
+            .card-body {
+              padding: 8px;
+              font-size: 12px;
+            }
+            .card small { color: #6b7280; }
+
+            /* tighten the plain vuln-table padding where reused */
+            .vuln-table.compact .vuln-description,
+            .vuln-table.compact .vuln-meta { padding: 4px; }
+
+            /* ensure 4 cards per page when many results */
+            .wrap-4-per-page > *:nth-child(4n) { page-break-after: always; }
+            .progress-duo-wrap {background: #e5e7eb;border-radius: 8px;padding: 4px;margin: 6px 0 4px;}
+            .progress-duo { display:flex; width:100%; height:10px; border-radius:6px; overflow:hidden; }
+            .progress-open   { background:#d90429; height:100%; } /* red */
+            .progress-closed { background:#2e7d32; height:100%; } /* green */
+
+         </style>
+    </head>
+    <body>
+        <h1>White&Black Box Applications Report 2025</h1>
+        <div class="date_report">Report generated on the {{ generated_at }}</div>
+        <div class="meta">
+            This report has been generated with GOST VulnAI. The data is update to <strong>{{ data.last_update }}</strong>
+        </div>
+        <div class="meta">
+            Since the 1st January a total of <strong>{{ data.counts.total_vulnerabilities }}</strong> vulnerabilities has been discovered.
+        </div>
+        <div class="meta">
+            Below an overview of the <strong>{{ data.counts.total_vulnerabilities }}</strong> vulnerabilities grouped by severity.
+        </div>
+        <h3>Vulnerabilities grouped by Severity</h3>
+        <div class="meta-center">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="severity_critical">Critical</th>
+                        <th class="severity_high">High</th>
+                        <th class="severity_medium">Medium</th>
+                        <th class="severity_low">Low</th>
+                        <th class="severity_info">Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="row-odd">
+                        <td><strong>{{ data.counts.app_severity_count.Critical }}</strong></td>
+                        <td><strong>{{ data.counts.app_severity_count.High }}</strong></td>
+                        <td><strong>{{ data.counts.app_severity_count.Medium }}</strong></td>
+                        <td><strong>{{ data.counts.app_severity_count.Low }}</strong></td>
+                        <td><strong>{{ data.counts.app_severity_count.Info }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h3>Vulnerabilities grouped by Service</h3>
+        <div class="meta-center">
+            <table>
+                <thead>
+                    <tr>
+                        <!-- Add a header for the 'service' column -->
+                        <th>Service</th>
+                        <th class="severity_critical">Critical</th>
+                        <th class="severity_high">High</th>
+                        <th class="severity_medium">Medium</th>
+                        <th class="severity_low">Low</th>
+                        <th class="severity_info">Info</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% for row in data.counts.app_service_severity_count %}
+                        <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                            <!-- Access each item in the dictionary using dot notation -->
+                            <td><strong>{{ row.service }}</strong></td>
+                            <td><strong>{{ row.Critical }}</strong></td>
+                            <td><strong>{{ row.High }}</strong></td>
+                            <td><strong>{{ row.Medium }}</strong></td>
+                            <td><strong>{{ row.Low }}</strong></td>
+                            <td><strong>{{ row.Info }}</strong></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <h2>Risk Overview</h2>
+        <h3>Current Risk</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities still in Open and Validating state.
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on the open vulnerabilities and risk category. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.app_current_risk.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.app_current_risk.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.app_current_risk.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No severity data found.</p>
+            {% endif %}
+        </div>
+        <h3>Black Box Current Risk</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities still in Open and Validating state found in Black box.
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on the open vulnerabilities and risk category. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.black_current_risk.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.black_current_risk.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.black_current_risk.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No severity data found.</p>
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        <h3>White Box Current Risk</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities still in Open and Validating state found in White box.
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on the open vulnerabilities and risk category. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.white_current_risk.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.white_current_risk.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.white_current_risk.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No severity data found.</p>
+            {% endif %}
+        </div>
+        <h3>Total Risk</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities found in White and Black box.
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on vulnerabilities and risk category. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.app_tot_current_risk.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.app_tot_current_risk.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.app_tot_current_risk.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No severity data found.</p>
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        <h3>Vulnerability Types by Risk Score</h3>
+        <div class="meta">
+            This calculation include <strong>All</strong> vulnerabilities found in White and Black box grouped for vulnerability types
+        </div>
+        <div class="meta">
+            This metric calculates the average "time pressure" on vulnerability types and risk. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
+        </div>
+        <div class="meta-center">
+            {% if data.app_vuln_types_risk.rows %}
+                <table class="transpose-table">
+                    <thead>
+                        <tr>
+                            {% for col in data.app_vuln_types_risk.columns %}
+                                <th>{{ col | replace('_', ' ') | title }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data.app_vuln_types_risk.rows %}
+                            <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                                {% for cell in row %}
+                                    {% if loop.last %}
+                                        {% set v = (cell|float) %}
+                                        {% set v = 1.0 if v > 1 else (0.0 if v < 0 else v) %}
+                                        <td>
+                                            {{ cell }}
+                                            <span class="meter">
+                                                <span class="meter-fill" style="{{ 'width: %.0f%%' % (v * 100) }}"></span>
+                                            </span>
+                                        </td>
+                                    {% else %}
+                                        <td>{{ cell }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="warning-color">No vulnerability type risk data found.</p>
+            {% endif %}
+        </div>
+        <div class="page-break"></div>
+        <h2>Vulnerability types Recommendation</h2>
+        <h3>Vulnerability types</h3>
+        <div class="meta">
+            {% for item in data.recommendation %}
+                <table class="vuln-table" style="padding-bottom: 10px;">
+                    <tr class="vuln-tr">
+                        <td colspan="4">
+                            <div class="vuln-header">
+                                <div>
+                                    <div class="vuln-title">
+                                        {{ item.vuln_type }}
+                                    </div>
+                                </div>
+                                <div class="vuln-status">
+                                    Total Count {{ item.type_count }}
+                                    <span class="chip">{{ item.type_count }}</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="severity_critical">Critical</th>
+                        <th class="severity_high">High</th>
+                        <th class="severity_medium">Medium</th>
+                        <th class="severity_low">Low</th>
+                    </tr>
+                    <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
+                        <td><strong>{{ item.Critical }} ({{ item.Critical_Open }})</strong></td>
+                        <td><strong>{{ item.High }} ({{ item.High_Open }})</strong></td>
+                        <td><strong>{{ item.Medium }} ({{ item.Medium_Open }})</strong></td>
+                        <td><strong>{{ item.Low }} ({{ item.Low_Open }})</strong></td>
+                    </tr>
+                    <tr class="vuln-tr">
+                        <td colspan="4">Recommendations:<div class="vuln-description">{{ item.combined_recommendations }}</div></td>
+                    </tr>
+                </table>
+                <div class="page-break"></div>
+            {% endfor %}
+        </div>
+    </body>
+</html>
