@@ -732,20 +732,18 @@
             <div class="meta">No vulnerability type data available.</div>
         {% endif %}
         <div class="page-break"></div>
-        Vulnerability types Recommendation ({{ data.recommendation | length }} found)
         {% for item in data.recommendation %}
-
             {% if not loop.first %}
-                <hr style="margin-top: 20px; border-top: 1px solid #ccc;">
+                <div class="page-break"></div>
             {% endif %}
 
-            <h3>{{ item.vuln_type }}</h3>
+            <h4>{{ item.vuln_type }}</h4>
 
             <div class="meta">
                 A total of <strong>{{ item.type_count }}</strong> instances of this vulnerability were found.
             </div>
 
-            <h3>Severity Breakdown (Open / Total)</h3>
+            <h5>Severity Breakdown (Open / Total)</h5>
             <table style="margin-top: 10px;">
                 <thead>
                     <tr>
@@ -765,15 +763,16 @@
                 </tbody>
             </table>
 
-            <h3>Recommendations</h3>
+            <h5>Recommendations</h5>
 
             <div class="vuln-description"
                  style="white-space: pre-wrap;
+                        overflow-wrap: anywhere;
                         padding: 10px;
                         background-color: #f9f9f9;
                         border: 1px solid #ddd;
                         border-radius: 5px;
-                        text-align: left;">{{ item.combined_recommendations }}</div>
+                        text-align: left;">{{ item.combined_recommendations | e }}</div>
 
         {% endfor %}
     </body>

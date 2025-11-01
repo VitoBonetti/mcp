@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime, timedelta
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from weasyprint import HTML
 import io
 import base64
@@ -38,7 +38,7 @@ QUERY_DIR = os.path.join(BASE_DIR, "queries")
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
 
 # Set up Jinja2 environment
-jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
+jinja_env = Environment(loader=FileSystemLoader(TEMPLATE_DIR), autoescape=select_autoescape(['html', 'xml']))
 key_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 if key_path and os.path.exists(key_path):
     creds = service_account.Credentials.from_service_account_file(key_path)
@@ -371,7 +371,9 @@ def application_report():
     if not gcs_bucket:
         raise Exception("GCS_BUCKET_NAME environment variable is not set.")
 
-    file_name = f"VULNAI_Application_Report_{uuid.uuid4()}.pdf"
+    base_name = f"VULNAI_Application_Report_{uuid.uuid4()}"
+    file_name = f"{base_name}.pdf"
+
 
     try:
         # 1. Fetch all raw data concurrently
