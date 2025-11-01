@@ -732,44 +732,49 @@
             <div class="meta">No vulnerability type data available.</div>
         {% endif %}
         <div class="page-break"></div>
-        <h2>Vulnerability types Recommendation</h2>
-        <h3>Vulnerability types</h3>
-        <div class="meta">
-            {% for item in data.recommendation %}
-                <table class="vuln-table" style="padding-bottom: 10px;">
-                    <tr class="vuln-tr">
-                        <td colspan="4">
-                            <div class="vuln-header">
-                                <div>
-                                    <div class="vuln-title">
-                                        {{ item.vuln_type }}
-                                    </div>
-                                </div>
-                                <div class="vuln-status">
-                                    Total Count {{ item.type_count }}
-                                    <span class="chip">{{ item.type_count }}</span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
+        Vulnerability types Recommendation ({{ data.recommendation | length }} found)
+        {% for item in data.recommendation %}
+
+            {% if not loop.first %}
+                <hr style="margin-top: 20px; border-top: 1px solid #ccc;">
+            {% endif %}
+
+            <h3>{{ item.vuln_type }}</h3>
+
+            <div class="meta">
+                A total of <strong>{{ item.type_count }}</strong> instances of this vulnerability were found.
+            </div>
+
+            <h3>Severity Breakdown (Open / Total)</h3>
+            <table style="margin-top: 10px;">
+                <thead>
                     <tr>
                         <th class="severity_critical">Critical</th>
                         <th class="severity_high">High</th>
                         <th class="severity_medium">Medium</th>
                         <th class="severity_low">Low</th>
                     </tr>
-                    <tr class="{{ 'row-even' if loop.index is even else 'row-odd' }}">
-                        <td><strong>{{ item.Critical }} ({{ item.Critical_Open }})</strong></td>
-                        <td><strong>{{ item.High }} ({{ item.High_Open }})</strong></td>
-                        <td><strong>{{ item.Medium }} ({{ item.Medium_Open }})</strong></td>
-                        <td><strong>{{ item.Low }} ({{ item.Low_Open }})</strong></td>
+                </thead>
+                <tbody>
+                    <tr class="row-odd">
+                        <td><strong>{{ item.Critical_Open }} / {{ item.Critical }}</strong></td>
+                        <td><strong>{{ item.High_Open }} / {{ item.High }}</strong></td>
+                        <td><strong>{{ item.Medium_Open }} / {{ item.Medium }}</strong></td>
+                        <td><strong>{{ item.Low_Open }} / {{ item.Low }}</strong></td>
                     </tr>
-                    <tr class="vuln-tr">
-                        <td colspan="4">Recommendations:<div class="vuln-description">{{ item.combined_recommendations }}</div></td>
-                    </tr>
-                </table>
-                <div class="page-break"></div>
-            {% endfor %}
-        </div>
+                </tbody>
+            </table>
+
+            <h3>Recommendations</h3>
+
+            <div class="vuln-description"
+                 style="white-space: pre-wrap;
+                        padding: 10px;
+                        background-color: #f9f9f9;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                        text-align: left;">{{ item.combined_recommendations }}</div>
+
+        {% endfor %}
     </body>
 </html>

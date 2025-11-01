@@ -242,11 +242,15 @@ def chat(req: ChatRequest, background_tasks: BackgroundTasks):
                 tool_result = tool_function(**tool_args)
 
                 # --- Handle GCS URL from generate_report ---
-                if fc.name == "generate_report":
+                if fc.name == "generate_report" or fc.name == "application_report":
                     # tool_result is now the signed URL string
                     public_url = str(tool_result)
-                    tool_result_for_ai = {"public_url": public_url,
-                                          "message": "Report generated. Link expires in 5 minutes."}
+                    markdown_link = f"[Click here to download your report]({public_url})"
+                    tool_result_for_ai = {
+                        "status": "Success",
+                        "markdown_link": markdown_link,
+                        "message": f"Report generated. The link expires in 5 minutes."
+                    }
 
                 elif not isinstance(tool_result, (str, int, float, list, dict)):
                     tool_result_for_ai = str(tool_result)
