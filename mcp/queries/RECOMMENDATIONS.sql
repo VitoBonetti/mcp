@@ -1,6 +1,6 @@
 SELECT
     vuln_type,
-    STRING_AGG(DISTINCT recommendations, "\n\n") AS combined_recommendations,
+    ARRAY_AGG(DISTINCT recommendations IGNORE NULLS) AS recommendation_list,
     COUNT(*) AS type_count,
     COUNTIF(severity = 'Critical') as Critical,
     COUNTIF(severity = 'High') as High,

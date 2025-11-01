@@ -186,7 +186,7 @@ Here are the tables you can query. **REMINDER: You MUST use `get_table_schema` i
 WARNING: After querying the **`{BG_MARKET_CURRENT_RISK_SUMMARY}`** or **`{BG_GLOBAL_CURRENT_RISK_SUMMARY}`**, always add to the bottom of the response the following note:
 'This metric calculates the average "time pressure" on your open vulnerabilities for a specific market and/or risk category. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.'
 
-WARNING: After using the `generate_report`, if the report is generated successfully, the tool will return a secure, temporary URL. You MUST inform the user that this link will expire in 5 minutes.---
+WARNING: After using the `generate_report` or 'application_report', if the report is generated successfully, the tool will return a secure, temporary URL. You MUST inform the user that this link will expire in 5 minutes.---
 
 ### Multi-Table Usage
 - If a request requires **multiple perspectives**, query **more than one table**.

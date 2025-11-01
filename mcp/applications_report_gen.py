@@ -10,6 +10,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from difflib import SequenceMatcher
 from google.cloud import storage
 from google.oauth2 import service_account
 from bigquery_client import run_sql
@@ -63,6 +64,96 @@ QUERY_FILES = {
 }
 
 QUERIES = {}
+
+
+def _create_pie_chart(title, data_dict, color_map):
+    """
+    Creates a pie chart from a dictionary of {label: value}
+    and returns a base64 image.
+    """
+    # Filter out zero-value entries to avoid clutter
+    filtered_data = {k: v for k, v in data_dict.items() if v is not None and v > 0}
+
+    if not filtered_data:
+        print(f"No data for pie chart: {title}")
+        return None  # Don't generate a chart if there's no data
+
+    labels = list(filtered_data.keys())
+    sizes = list(filtered_data.values())
+    # Ensure colors align with the filtered labels
+    colors = [color_map.get(label, '#CCCCCC') for label in labels]  # Default to gray
+
+    fig, ax = plt.subplots(figsize=(7, 5))  # 7x5 is a good size
+
+    # Add a small gap between slices
+    explode = [0.01] * len(labels)
+
+    # Draw the pie
+    wedges, texts, autotexts = ax.pie(
+        sizes,
+        autopct='%1.1f%%',
+        startangle=90,
+        colors=colors,
+        explode=explode,
+        pctdistance=1.1,
+        textprops={'color': 'black', 'weight': 'bold'}  # Text color on slices
+    )
+
+    ax.axis('equal')  # Equal aspect ratio
+
+    # Add a legend
+    ax.legend(wedges,
+              labels,
+              title="Severities",
+              loc="center left",
+              bbox_to_anchor=(1, 0, 0.5, 1))  # Place legend to the right
+
+    plt.title(title, fontsize=14, pad=20, fontweight='bold')
+
+    # Convert to base64
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=100, bbox_inches='tight')  # Use bbox_inches
+    buf.seek(0)
+    img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    plt.close(fig)  # Close the figure to free memory
+
+    return f"data:image/png;base64,{img_base64}"
+
+
+def get_unique_recommendations(reco_list, similarity_threshold=0.85):
+    """
+    Deduplicates a list of strings based on similarity.
+    Uses SequenceMatcher to compare strings and filters out
+    any string that is too similar to one already added.
+    """
+    if not reco_list:
+        return []
+
+    unique_recommendations = []
+    for reco in reco_list:
+        if not reco or not reco.strip():
+            continue
+
+        is_duplicate = False
+        # Normalize the new recommendation for comparison
+        # Standardize whitespace and case
+        normalized_reco = ' '.join(reco.lower().split())
+
+        for unique_item in unique_recommendations:
+            # Compare against the normalized version of the already-added item
+            normalized_unique = ' '.join(unique_item.lower().split())
+            ratio = SequenceMatcher(None, normalized_reco, normalized_unique).ratio()
+
+            # If ratio is above the threshold, consider it a duplicate
+            if ratio > similarity_threshold:
+                is_duplicate = True
+                break
+
+        # Add the *original* string
+        if not is_duplicate:
+            unique_recommendations.append(reco)
+
+    return unique_recommendations
 
 
 def load_query(name: str, file_name: str) -> str:
@@ -171,9 +262,12 @@ def _get_data():
 
     # Vuln type
     vuln_types_result = results.get("vuln_types")
-    data['vuln_types'] = {}
+    data['vuln_types'] = []
     if vuln_types_result and vuln_types_result['rows']:
-        data['vuln_types'] = dict(zip(vuln_types_result['columns'], vuln_types_result['rows'][0]))
+        data['vuln_types'] = [
+            dict(zip(vuln_types_result['columns'], r))
+            for r in vuln_types_result['rows']
+        ]
 
 
     # Risk Summary
@@ -192,8 +286,20 @@ def _get_data():
     if app_severity_count and app_severity_count['rows']:
         data['counts']["app_severity_count"] = dict(zip(app_severity_count['columns'], app_severity_count['rows'][0]))
 
+    # Define the requested color map
+    severity_color_map = {
+        'Critical': '#000000',  # black
+        'High': '#FF0000',  # red
+        'Medium': '#FFA500',  # orange
+        'Low': '#FFFF00',  # yellow
+        'Info': '#00FFFF'  # cyan
+    }
+
     app_service_severity_count = results.get("app_severity_service_count")
     data['counts']["app_service_severity_count"] = []
+    # Initialize keys for the charts
+    data['whitebox_severity_service_pie_chart'] = None
+    data['blackbox_severity_service_pie_chart'] = None
     if app_service_severity_count and app_service_severity_count['rows']:
         columns = app_service_severity_count['columns']
         # Loop over ALL rows, not just rows[0]
@@ -202,6 +308,30 @@ def _get_data():
             row_dict = dict(zip(columns, row))
             data['counts']["app_service_severity_count"].append(row_dict)
 
+            # charts pie logic
+            service_name = row_dict.get('service')
+            # Prepare data for the pie chart
+            chart_data = {
+                'Critical': row_dict.get('Critical'),
+                'High': row_dict.get('High'),
+                'Medium': row_dict.get('Medium'),
+                'Low': row_dict.get('Low'),
+                'Info': row_dict.get('Info')
+            }
+
+            if service_name == 'White Box':
+                data['whitebox_severity_service_pie_chart'] = _create_pie_chart(
+                    title='White Box Vulnerabilities by Severity',
+                    data_dict=chart_data,
+                    color_map=severity_color_map
+                )
+            elif service_name == 'Black Box':
+                data['blackbox_severity_service_pie_chart'] = _create_pie_chart(
+                    title='Black Box Vulnerabilities by Severity',
+                    data_dict=chart_data,
+                    color_map=severity_color_map
+                )
+
     # recommendation
     recommendation_result = results.get("recommendation")
     data['recommendation'] = []
@@ -209,6 +339,24 @@ def _get_data():
         columns = recommendation_result['columns']
         for row in recommendation_result['rows']:
             row_dict = dict(zip(columns, row))
+
+            # Get the list of recommendations from the BQ query
+            raw_reco_list = row_dict.get("recommendation_list", [])
+
+            # Deduplicate the list based on similarity
+            unique_recos = get_unique_recommendations(raw_reco_list)
+
+            # Join them back into the single string your template expects
+            # (using the original "\n\n" separator)
+            combined_string = "\n\n".join(unique_recos)
+
+            # Store this clean string in the dict under the original key
+            row_dict["combined_recommendations"] = combined_string
+
+            # Remove the list to save memory
+            if "recommendation_list" in row_dict:
+                del row_dict["recommendation_list"]
+
             data['recommendation'].append(row_dict)
 
     return data
