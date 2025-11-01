@@ -344,6 +344,22 @@
             .progress-duo { display:flex; width:100%; height:10px; border-radius:6px; overflow:hidden; }
             .progress-open   { background:#d90429; height:100%; } /* red */
             .progress-closed { background:#2e7d32; height:100%; } /* green */
+            .badge {
+                display: inline-block;
+                padding: 0.35em 0.65em; /* Vertical and horizontal padding */
+                font-size: 0.75em;      /* Makes it smaller than surrounding text */
+                font-weight: 700;
+                line-height: 1;
+                color: #fff;             /* White text */
+                background-color: #0d6efd; /* Default blue */
+                text-align: center;
+                vertical-align: baseline;
+                white-space: nowrap;    /* Prevents the badge from breaking to a new line */
+                border-radius: 0.25rem; /* Default slight radius (Bootstrap's base) */
+            }
+            .badge-pill {
+                border-radius: 50rem; /* This is the magic number! */
+            }
 
          </style>
     </head>
@@ -603,7 +619,7 @@
         <div class="page-break"></div>
         <h3>Vulnerability Types by Risk Score</h3>
         <div class="meta">
-            This calculation include <strong>All</strong> vulnerabilities found in White and Black box grouped for vulnerability types
+            This calculation include <strong>All</strong> vulnerabilities found in White and Black box grouped for vulnerability types, excluding the INFO severity.
         </div>
         <div class="meta">
             This metric calculates the average "time pressure" on vulnerability types and risk. A lower score is better, indicating that most open issues are new. A higher score is a warning that vulnerabilities are aging and/or getting closer to their deadlines.
@@ -646,7 +662,7 @@
         <div class="page-break"></div>
         <h3>Vulnerability Types Analysis</h3>
         <div class="meta">
-            Vulnerability types with totals, plus for each severity a bar showing <em>open / total</em>.
+            Vulnerability types with totals, plus for each severity a bar showing <em>open / total</em>, excluding the INFO severity.
         </div>
 
         {% if data.vuln_types %}
@@ -732,6 +748,12 @@
             <div class="meta">No vulnerability type data available.</div>
         {% endif %}
         <div class="page-break"></div>
+        <h3>Vulnerability Types 'Recommendations' Details.</h3>
+        <div class="meta">
+            This is a long list including the dedup recommendations for each vulnerability type. The severity INFO are excluded from the count.
+            The list is order by Average Risk and Total number of vulnerability types.
+        </div>
+        <hr style="margin-top: 20px; border-top: 1px solid #ccc;">
         {% for item in data.recommendation %}
             {% if not loop.first %}
                 <div class="page-break"></div>
@@ -740,7 +762,7 @@
             <h4>{{ item.vuln_type }}</h4>
 
             <div class="meta">
-                A total of <strong>{{ item.type_count }}</strong> instances of this vulnerability were found.
+                A total of <strong>{{ item.total_active_vulnerabilities }}</strong> instances of this vulnerability were found. <span class="badge badge-pill">Average Risk: {{ item.average_risk_score }}</span>
             </div>
 
             <h5>Severity Breakdown (Open / Total)</h5>
